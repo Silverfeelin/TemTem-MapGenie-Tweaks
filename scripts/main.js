@@ -13,6 +13,11 @@
 // ==/UserScript==
 
 const pollInterval = 200;
+const categoryIds = {
+  temtem: 190,
+  items: 191,
+  other: 193  
+};
 const markerImage = 'https://i.imgur.com/D9vSeka.png';
 const typeTables = {};
 const typeImages = [
@@ -67,14 +72,22 @@ let trackedMarkers = {};
     if (!marker) return;
     marker.classList.add('stt');
 
-    // Add contextual information.
+    const title = marker.querySelector('h3')?.innerText?.trim() || '';
     const category = marker.querySelector('.category')?.innerText?.trim();
-    switch (category) {
-      case 'Tamer': populateTamer(marker); break;
-    }
 
+    const markerProps = marker[Object.keys(marker).filter(k => k.startsWith('__reactProps'))[0] || ''];
+    const ownerProps =  markerProps?.children?.filter(f => f?.type === 'h3')[0]?._owner?.memoizedProps;
+    const categoryId = ownerProps.category?.group_id;
+    
     removeThatAnnoyingProReminder(marker);
     hijackThatFoundCheckbox(marker);
+
+    // Add contextual information.
+    if (categoryId === categoryIds.other && category === 'Tamer') {
+      populateTamer(marker);
+    } else if (categoryId == categoryIds.temtem) {
+      populateTemtem(marker);
+    }
   }, pollInterval);
 })();
 
@@ -115,9 +128,10 @@ function hijackThatFoundCheckbox(marker) {
   if (buttons) {
     // Find location the hacky way because I don't know React :) 
     const markerProps = marker[Object.keys(marker).filter(k => k.startsWith('__reactProps'))[0] || ''];
-    const location = markerProps?.children?.filter(f => f?.type === 'h3')[0]?._owner?.memoizedProps?.location;
-    if (!location) { throw new Error("Oops. Couldn't find location ID."); }
-    const locationId = location.id;
+    const ownerProps =  markerProps?.children?.filter(f => f?.type === 'h3')[0]?._owner?.memoizedProps;    
+    const location = ownerProps?.location;
+    const locationId = location?.id;
+    if (!locationId) { throw new Error("Oops. Couldn't find location ID."); }
 
     // Create entry if untracked.
     trackedMarkers[locationId] ??= {
@@ -186,6 +200,22 @@ function setLocationCompleted(locationId, completed) {
   trackedMarkers[locationId].completed = completed;
 }
 
+function populateTemtem(marker) {
+  const category = marker.querySelector('.category');
+  const temtem = category?.innerText?.trim(); 
+  if (!temtem) return;
+
+  // Add wiki link
+  const url = `https://temtem.fandom.com/wiki/${temtem}`;
+  category.innerHTML = `<i><a href="${url}" target="_blank">${temtem}</a></i>`;
+
+  const node = document.createElement('div');
+  marker.querySelector('.marker-content')?.insertAdjacentElement('afterbegin', node);
+
+  // Add matchup type data
+  fetchTypes(temtem, node);
+}
+
 function populateTamer(marker) {
   marker.querySelectorAll('.marker-content .description ul li').forEach(li => {
     // Find Temtem name
@@ -194,7 +224,7 @@ function populateTamer(marker) {
 
     // Add wiki link
     const url = `https://temtem.fandom.com/wiki/${temtem}`;
-    li.innerHTML = `<a href="${url}" target="_blank">${li.innerHTML}</a>`;
+    li.innerHTML = `<a href="${url}" target="_blank">${li.innerHTML}</a><br/>`;
 
     // Add matchup type data
     fetchTypes(temtem, li);
@@ -203,10 +233,10 @@ function populateTamer(marker) {
 
 // #region Types
 
-function fetchTypes(temtem, li) {
+function fetchTypes(temtem, el) {
   // Use stored data.
   if (typeTables[temtem]) {
-    appendTypeTable(temtem, li);
+    appendTypeTable(temtem, el);
     return;
   }
 
@@ -225,7 +255,7 @@ function fetchTypes(temtem, li) {
       values = values.slice(-12);
 
       createTypeTable(temtem, values);
-      appendTypeTable(temtem, li);
+      appendTypeTable(temtem, el);
     }
   });
 }
@@ -258,8 +288,6 @@ function createTypeTable(temtem, values) {
 function appendTypeTable(temtem, el) {
   const tbl = typeTables[temtem];
   if (!tbl) return;
-
-  el.insertAdjacentHTML('beforeend', '<br/>');
   el.appendChild(tbl);
 }
 
