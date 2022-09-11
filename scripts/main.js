@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TemTem MapGenie Tweaks
 // @namespace    https://github.com/Silverfeelin/
-// @version      0.1
+// @version      0.2
 // @description  Adds some info to the TemTem MapGenie site.
 // @author       Silverfeelin
 // @license      MIT
@@ -93,22 +93,30 @@ let trackedMarkers = {};
 
 // #region Storage
 
+const storageColumns = [ 'id', 'completed', 'pos' ];
 async function loadStoredData() {
   const storageData = JSON.parse(await GM.getValue('stt', '{}'));
   console.log('STT', storageData);
 
   // Initialize data
-  (storageData.markers || []).forEach(m => {
-    trackedMarkers[m.id] = { id: m.id, completed: m.completed, pos: m.pos };
+  const markers = storageData.markers || {};
+  if (!markers.items?.length) { return; }
+  markers.items.forEach(m => {
+    const obj = {};
+    markers.columns.forEach((c, i) => obj[c] = m[i]);
+    trackedMarkers[obj.id] = obj;
   });
 }
 
 async function storeLoadedData() {
   const data = {
-    markers: Object.keys(trackedMarkers).map(id => {
-      const m = trackedMarkers[id];
-      return { id: m.id, completed: m.completed, pos: m.pos };
-    })
+    markers: {
+      columns: storageColumns,
+      items: Object.keys(trackedMarkers).map(id => {
+        const m = trackedMarkers[id];
+        return storageColumns.map(s => m[s]);
+      })
+    }
   };
   await GM.setValue('stt', JSON.stringify(data));
 }
