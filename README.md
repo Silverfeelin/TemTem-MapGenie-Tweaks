@@ -10,7 +10,9 @@ Userscript to add some useful information to Map Genie's TemTem map.
 
 **Preview**
 
-![](https://i.imgur.com/gDG01P7.png)
+| Temtem | Tamer |
+|---|---|
+| ![](https://i.imgur.com/M8hs9ja.png) | ![](https://i.imgur.com/gDG01P7.png) |
 
 
 ## Disclaimer
