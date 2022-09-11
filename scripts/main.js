@@ -16,7 +16,7 @@ const pollInterval = 200;
 const categoryIds = {
   temtem: 190,
   items: 191,
-  other: 193  
+  other: 193
 };
 const markerImage = 'https://i.imgur.com/D9vSeka.png';
 const typeTables = {};
@@ -76,9 +76,9 @@ let trackedMarkers = {};
     const category = marker.querySelector('.category')?.innerText?.trim();
 
     const markerProps = marker[Object.keys(marker).filter(k => k.startsWith('__reactProps'))[0] || ''];
-    const ownerProps =  markerProps?.children?.filter(f => f?.type === 'h3')[0]?._owner?.memoizedProps;
+    const ownerProps = markerProps?.children?.filter(f => f?.type === 'h3')[0]?._owner?.memoizedProps;
     const categoryId = ownerProps.category?.group_id;
-    
+
     removeThatAnnoyingProReminder(marker);
     hijackThatFoundCheckbox(marker);
 
@@ -99,7 +99,7 @@ async function loadStoredData() {
 
   // Initialize data
   (storageData.markers || []).forEach(m => {
-    trackedMarkers[m.id] = { id: m.id , completed: m.completed, pos: m.pos };
+    trackedMarkers[m.id] = { id: m.id, completed: m.completed, pos: m.pos };
   });
 }
 
@@ -128,7 +128,7 @@ function hijackThatFoundCheckbox(marker) {
   if (buttons) {
     // Find location the hacky way because I don't know React :) 
     const markerProps = marker[Object.keys(marker).filter(k => k.startsWith('__reactProps'))[0] || ''];
-    const ownerProps =  markerProps?.children?.filter(f => f?.type === 'h3')[0]?._owner?.memoizedProps;    
+    const ownerProps = markerProps?.children?.filter(f => f?.type === 'h3')[0]?._owner?.memoizedProps;
     const location = ownerProps?.location;
     const locationId = location?.id;
     if (!locationId) { throw new Error("Oops. Couldn't find location ID."); }
@@ -137,7 +137,7 @@ function hijackThatFoundCheckbox(marker) {
     trackedMarkers[locationId] ??= {
       id: locationId, completed: false, pos: [location.longitude, location.latitude]
     };
-    
+
     // Create found checkbox
     const container = document.createElement('div');
     const input = document.createElement('input');
@@ -189,7 +189,7 @@ function addMapMarker(marker) {
   div.insertAdjacentHTML('beforeend', `<img src="${markerImage}">`);
   div.className = 'stt-marker';
   div.style.pointerEvents = 'none';
-  
+
   const mapMarker = new mapboxgl.Marker(div);
   mapMarker.setLngLat(marker.pos).addTo(map);
   trackedMarkers[marker.id].marker = mapMarker;
@@ -202,7 +202,7 @@ function setLocationCompleted(locationId, completed) {
 
 function populateTemtem(marker) {
   const category = marker.querySelector('.category');
-  const temtem = category?.innerText?.trim(); 
+  const temtem = category?.innerText?.trim();
   if (!temtem) return;
 
   // Add wiki link
