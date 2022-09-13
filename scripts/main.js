@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TemTem MapGenie Tweaks
 // @namespace    https://github.com/Silverfeelin/
-// @version      0.2
+// @version      0.3
 // @description  Adds some info to the TemTem MapGenie site.
 // @author       Silverfeelin
 // @license      MIT
@@ -83,7 +83,7 @@ let trackedMarkers = {};
     hijackThatFoundCheckbox(marker);
 
     // Add contextual information.
-    if (categoryId === categoryIds.other && category === 'Tamer') {
+    if (categoryId === categoryIds.other && (category === 'Tamer' || category === 'Dojo')) {
       populateTamer(marker);
     } else if (categoryId == categoryIds.temtem) {
       populateTemtem(marker);
