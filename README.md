@@ -5,7 +5,7 @@ Userscript to add some useful information to Map Genie's TemTem map.
 |||
 |---|---|
 | Greasy Fork | https://greasyfork.org/en/scripts/451203-temtem-mapgenie-tweaks |
-| Map Genie | https://mapgenie.io/temtem/maps |
+| Map Genie | https://mapgenie.io/temtem |
 
 * Add wiki links for listed Temtems.
 * Add type matchup information (source from wiki).
