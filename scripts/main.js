@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TemTem MapGenie Tweaks
 // @namespace    https://github.com/Silverfeelin/
-// @version      0.4
+// @version      0.5
 // @description  Adds some info to the TemTem MapGenie site.
 // @author       Silverfeelin
 // @license      MIT
@@ -10,6 +10,8 @@
 // @grant        GM.addStyle
 // @grant        GM.setValue
 // @grant        GM.getValue
+// @require      https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js
+
 // ==/UserScript==
 
 // #region Constants
@@ -278,12 +280,17 @@ function addWidget() {
   // Shows up to 4 results.
   let si = 0;
   let count = 0;
+  let lastCall;
   const showResults = res => {
+    const call = Math.random();
+    lastCall = call;
     res = res.slice(0, 4);
     count = res.length;
     si = 0;
     res.slice(0, 4).forEach(async (r, i) => {
       await fetchTypesAsync(r);
+      if (lastCall !== call) return;
+      
       const div = document.querySelector(`div[data-i="${i}"].stt-w-result`);
       if (!div) return;
       
@@ -313,20 +320,11 @@ function addWidget() {
     document.querySelector(`.stt-w-result[data-i="${si}"]`)?.classList.add('sel');
   }
 
-  // Prepare search list
-  const trie = new Trie();
-  temtemList.forEach(t => trie.add(t.toLowerCase()));
-
+  // Prepare search
+  const temtemFuse = new Fuse(temtemList, { /* options */ });
   inpSearch.addEventListener('input', () => {
-    let search = inpSearch.value?.toLowerCase() || '';
-    const set = new Set();
-    const results = [];
-    while (search.length > 0) {
-      let r = trie.search(search).map(t => { return { t, l: levenshtein(search,t) }; });
-      r = r.sort((a,b) => a.l-b.l).map(v => v.t);
-      results.push(...r.filter(t => !set.has(t) && set.add(t)));
-      search = search.substring(0, search.length - 1);
-    }
+    const search = inpSearch.value || '';
+    const results = temtemFuse.search(search).map(r => r.item);
     showResults(results);
   });
 
@@ -591,54 +589,7 @@ function getTypeFromHref(href) {
 
 // #region Util
 
-class TrieNode {
-  constructor(c) {
-    this.c = c;
-    this.items = {};
-    this.isWord = false;
-  }
-}
-
-class Trie {
-  constructor() {
-    this.root = new TrieNode(null)
-  }
-
-  add(word) {
-    let node = this.root;
-    for (const char of word) {
-      node.items[char] ??= new TrieNode(char);
-      node = node.items[char];
-    }
-    node.isWord = true;
-  }
-
-  search(word) {
-    // Loop through trie.
-    let node = this.root
-    for (const char of word) {
-      node = node.items[char];
-      if (!node) { return []; }
-    }
-
-    // Create matches from node.
-    const results = [];
-    this.complete(node, word, results);
-    return results;
-  }
-
-  complete(node, word, results) {
-    if (node.isWord) results.push(word);
-    for (const c of Object.keys(node.items)) {
-      const subNode = node.items[c];
-      this.complete(subNode, word + subNode.c, results);
-    }
-  }
-}
-
 // source: https://www.tutorialspoint.com/levenshtein-distance-in-javascript
 function levenshtein(l,e){let t=Array(e.length+1).fill().map(()=>Array(l.length+1).fill());for(let _=0;_<=l.length;_++)t[0][_]=_;for(let n=0;n<=e.length;n++)t[n][0]=n;for(let h=1;h<=e.length;h++)for(let g=1;g<=l.length;g++){let f=l[g-1]===e[h-1]?0:1;t[h][g]=Math.min(t[h][g-1]+1,t[h-1][g]+1,t[h-1][g-1]+f)}return t[e.length][l.length]}
-
-//unsafeWindow.Trie = Trie;
 
 // #endregion
