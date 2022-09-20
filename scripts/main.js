@@ -10,7 +10,7 @@
 // @grant        GM.addStyle
 // @grant        GM.setValue
 // @grant        GM.getValue
-// @require      https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js
+// @require      https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js
 
 // ==/UserScript==
 
@@ -290,7 +290,7 @@ function addWidget() {
     res.slice(0, 4).forEach(async (r, i) => {
       await fetchTypesAsync(r);
       if (lastCall !== call) return;
-      
+
       const div = document.querySelector(`div[data-i="${i}"].stt-w-result`);
       if (!div) return;
       
